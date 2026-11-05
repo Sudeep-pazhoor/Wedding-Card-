@@ -55,8 +55,8 @@ The repository is structured with completely separated **`frontend/`** and **`ba
      `mongodb+srv://sudeeppazhoor_db_user:<password>@cluster0.y8o3lfd.mongodb.net/wedding?retryWrites=true&w=majority`
    - `CLIENT_ORIGIN`: Your Vercel frontend URL (e.g. `https://your-project.vercel.app`), or leave blank to allow all during setup.
 5. Click **Create Web Service**.
-6. Render will assign you a live URL, e.g.:
-   `https://neeraja-sundeep-backend.onrender.com`
+6. Render deployed URL:
+   `https://wedding-card-ns.onrender.com`
 
 ---
 
@@ -70,8 +70,7 @@ The repository is structured with completely separated **`frontend/`** and **`ba
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
 4. Add Environment Variable:
-   - `VITE_API_URL`: Your Render backend URL from step 1:
-     `https://neeraja-sundeep-backend.onrender.com`
+   - `VITE_API_URL`: `https://wedding-card-ns.onrender.com` (already bundled in `frontend/.env.production`)
 5. Click **Deploy**.
 
 ---

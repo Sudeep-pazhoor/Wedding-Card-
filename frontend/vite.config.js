@@ -8,7 +8,7 @@ export default defineConfig({
     open: false,
     proxy: {
       "/api": {
-        target: process.env.VITE_BACKEND_URL || "http://localhost:5000",
+        target: process.env.VITE_BACKEND_URL || process.env.VITE_API_URL || "http://localhost:5000",
         changeOrigin: true,
       },
     },

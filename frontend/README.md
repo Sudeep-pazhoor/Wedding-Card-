@@ -19,7 +19,7 @@ You can deploy this frontend directly on **Vercel**.
    - **Build Command**: `npm run build` (or left to default `vite build`)
    - **Output Directory**: `dist`
 5. Under **Environment Variables**, add:
-   - `VITE_API_URL`: The URL of your Render backend service (e.g. `https://neeraja-sundeep-backend.onrender.com` without trailing slash).
+   - `VITE_API_URL`: `https://wedding-card-ns.onrender.com` (already bundled by default in `frontend/.env.production` as well!)
 6. Click **Deploy**.
 
 > **Note**: Both `frontend/vercel.json` and root `vercel.json` are already preconfigured, so routing and SPA deep links work automatically.

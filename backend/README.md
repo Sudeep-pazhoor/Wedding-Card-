@@ -25,9 +25,9 @@ You can deploy this backend as a standalone **Render Web Service** pointing to t
      `mongodb+srv://sudeeppazhoor_db_user:<password>@cluster0.y8o3lfd.mongodb.net/wedding?retryWrites=true&w=majority`
    - `CLIENT_ORIGIN`: Your Vercel frontend URL (e.g. `https://your-project.vercel.app`), or leave empty during initial setup to allow all origins.
 6. Click **Create Web Service**.
-7. Once deployed, Render will provide a live URL like:
-   `https://neeraja-sundeep-backend.onrender.com`
-   Copy this URL — you will add it as `VITE_API_URL` in your Vercel frontend environment variables!
+7. Your live Render Backend URL:
+   `https://wedding-card-ns.onrender.com`
+   This URL is configured in the frontend (`VITE_API_URL`) to connect live blessings!
 
 ---
 
