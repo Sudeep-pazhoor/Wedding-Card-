@@ -1,0 +1,28 @@
+{
+  "name": "neeraja-sundeep",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A bilingual wedding invitation for Sundeep & Neeraja — separated Frontend and Backend.",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n frontend,backend -c cyan,magenta \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend",
+    "preview": "npm run preview --workspace=frontend",
+    "start": "npm run start --workspace=backend",
+    "lint": "npm run lint --workspace=frontend && npm run lint --workspace=backend",
+    "generate:qr": "npm run generate:qr --workspace=frontend",
+    "install:all": "npm --prefix frontend install && npm --prefix backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
