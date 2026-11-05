@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "node --watch src/index.js",
+    "build": "echo Backend ready",
     "start": "node src/index.js",
     "lint": "oxlint"
   },
@@ -24,4 +25,3 @@
     "oxlint": "^1.89.0"
   }
 }
-

@@ -4,7 +4,9 @@ A bilingual (English / Malayalam) wedding invitation and blessing wall for
 **Sundeep & Neeraja**, celebrating on **Sunday, 24 January 2027** at
 **Hilton Convention Center, Manjeri, Kerala**.
 
-The repository is structured with completely separated **`frontend/`** and **`backend/`** folders, allowing each to be developed, run, and deployed independently or coordinated seamlessly from the root workspace.
+The repository is structured with completely separated **`frontend/`** and **`backend/`** folders, designed for independent deployment:
+- **Backend on Render**: Express 5 + MongoDB Atlas API with root directory set to `backend/`.
+- **Frontend on Vercel**: React 19 + Vite frontend with root directory set to `frontend/`.
 
 ---
 
@@ -15,188 +17,86 @@ The repository is structured with completely separated **`frontend/`** and **`ba
 - **Traditional design** — parchment, maroon and gold palette, serif display
   type, lotus/mandala ornaments, palm sprays, floating petals, and a rotating
   wedding seal.
-- **Graceful placeholders** for the couple's photographs and gallery. Drop in
-  real photos later without touching component code.
-- **Live blessing wall** — guests can leave a wish, which is stored in MongoDB
-  and displayed in continuously moving marquee cards. If the database is not
-  configured, wishes are saved on the guest's device so the page still works.
+- **Background Wedding Audio** — plays festive melody starting at 8 seconds with
+  header Play/Pause controls, live equalizer wave animation, and 6-second notice.
+- **Live blessing wall** — guests can leave a wish, which is stored in MongoDB Atlas
+  and displayed in flowing cards. Real MongoDB data only.
 - **Venue QR code** generated locally, plus Google Maps and copy-address actions.
 - **Accessible details** — skip link, focus styles, keyboard gallery lightbox,
   live form status, reduced-motion support, and semantic landmarks.
-- **Lightweight** — React, GSAP and Lenis only. No Three.js or heavy 3D payload.
-  Production bundle is roughly 138 kB of JavaScript and 13 kB of CSS (gzipped).
+- **Lightweight** — React, GSAP and Lenis only.
+  Production bundle is roughly 138 kB of JavaScript and 14 kB of CSS (gzipped).
 
 ---
 
-## Tech stack
+## Tech Stack & Deployment Architecture
 
-| Layer      | Technology                                        | Location   |
-| ---------- | ------------------------------------------------- | ---------- |
-| Front end  | React 19, Vite 8, GSAP, Lenis                     | `frontend/`|
-| Back end   | Express 5, Mongoose 9                             | `backend/` |
-| Database   | MongoDB (local or MongoDB Atlas)                  | Database   |
-| Deployment | Vercel (static site + `/api` serverless functions)| Root / Vercel |
-| Tooling    | Oxlint, concurrently, qrcode                      | Root & packages |
+| Service    | Technology                    | Directory   | Production Host |
+| ---------- | ----------------------------- | ----------- | --------------- |
+| Front end  | React 19, Vite 8, GSAP, Lenis | `frontend/` | **Vercel**      |
+| Back end   | Express 5, Mongoose 9         | `backend/`  | **Render**      |
+| Database   | MongoDB Atlas                 | Cloud       | MongoDB Atlas   |
 
 ---
 
-## Quick start
+## Deployment Guide
+
+### 1. Deploy Backend to Render
+
+1. Log into [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** → **Web Service** and connect this repository.
+3. Configure the service:
+   - **Root Directory**: `backend`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+4. Add Environment Variables:
+   - `MONGODB_URI`: Your MongoDB Atlas connection string:
+     `mongodb+srv://sudeeppazhoor_db_user:<password>@cluster0.y8o3lfd.mongodb.net/wedding?retryWrites=true&w=majority`
+   - `CLIENT_ORIGIN`: Your Vercel frontend URL (e.g. `https://your-project.vercel.app`), or leave blank to allow all during setup.
+5. Click **Create Web Service**.
+6. Render will assign you a live URL, e.g.:
+   `https://neeraja-sundeep-backend.onrender.com`
+
+---
+
+### 2. Deploy Frontend to Vercel
+
+1. Log into [Vercel Dashboard](https://vercel.com/).
+2. Click **Add New...** → **Project** and import this repository.
+3. Configure the project:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Select `frontend` (Click Edit → select `frontend`)
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add Environment Variable:
+   - `VITE_API_URL`: Your Render backend URL from step 1:
+     `https://neeraja-sundeep-backend.onrender.com`
+5. Click **Deploy**.
+
+---
+
+## Local Development
 
 Requirements: **Node.js 20+** and npm.
 
-### Option 1: Run everything from the root
-
+### Run everything together:
 ```bash
-# Install dependencies across frontend & backend
+# Install dependencies in frontend and backend
 npm run install:all
 
 # Configure MongoDB for the backend
 cp backend/.env.example backend/.env
-```
+# Edit backend/.env with your MONGODB_URI
 
-Open `backend/.env` and add your MongoDB connection string:
-
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/wedding?retryWrites=true&w=majority
-```
-
-Start both the frontend and backend together with hot reload:
-
-```bash
+# Start both frontend and backend concurrently
 npm run dev
 ```
 
-- Website: <http://localhost:5173>
-- API health: <http://localhost:5000/api/health>
+- Frontend: <http://localhost:5173>
+- Backend API: <http://localhost:5000/api/health>
 
-The front end proxies `/api` to port `5000` during local development, so no other
-configuration is needed.
-
----
-
-### Option 2: Run frontend and backend independently
-
-#### Frontend only
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Runs at <http://localhost:5173>.
-
-#### Backend only
-```bash
-cd backend
-npm install
-cp .env.example .env
-npm run dev
-```
-Runs at <http://localhost:5000>.
-
----
-
-## MongoDB setup
-
-1. Create a free **MongoDB Atlas** cluster (or use a local MongoDB server).
-2. Create a database user with read/write access.
-3. Under **Network Access**, allow your current IP for local development. For
-   Vercel, either allow `0.0.0.0/0` (simplest for a small wedding site) or use
-   Vercel's static egress IPs if your plan provides them.
-4. Copy the connection string into `backend/.env` as `MONGODB_URI`.
-5. Restart the API. `GET /api/health` should report `"database": "configured"`.
-
-The first blessing creates the `messages` collection automatically.
-
-### Blessing API
-
-| Method | Route           | Purpose                                            |
-| ------ | --------------- | -------------------------------------------------- |
-| GET    | `/api/health`   | Health and database configuration status           |
-| GET    | `/api/messages` | Latest 60 blessings, newest first                  |
-| POST   | `/api/messages` | Create a blessing (`name`, `message`, `attending`) |
-
-The write endpoint is rate-limited (10 submissions per 10 minutes per IP),
-validates lengths, strips control characters, and includes a honeypot field.
-
----
-
-## Editing the invitation
-
-All wording lives in:
-
-```text
-frontend/src/data/content.js
-```
-
-- `SITE` — names, date, venue search query, Maps URL, phone numbers, hashtag.
-- `content.en` — English copy for every section.
-- `content.ml` — Malayalam copy.
-- `starterBlessings` — sample wishes shown only while the wall is empty.
-
-The countdown reads `SITE.weddingDateISO` (`2027-01-24T10:00:00+05:30`).
-
----
-
-## Adding photographs
-
-The design intentionally ships without personal photos. Until files are added,
-each image slot shows an elegant “Photograph coming soon” placeholder.
-
-Place files in `frontend/public/` using these exact names:
-
-| File                                 | Where it appears        | Suggested crop              |
-| ------------------------------------ | ----------------------- | --------------------------- |
-| `frontend/public/images/hero.jpg`    | Hero background         | 3:2 landscape, 2400 px wide |
-| `frontend/public/images/portrait.jpg`| Invitation arch frame   | 4:5 portrait, 1200 × 1500   |
-| `frontend/public/gallery/photo-1.jpg`| Gallery — large tile    | 3:2 landscape               |
-| `frontend/public/gallery/photo-2.jpg`| Gallery — wide tile     | 3:2 landscape               |
-| `frontend/public/gallery/photo-3.jpg`| Gallery — small tile    | 3:2 landscape               |
-| `frontend/public/gallery/photo-4.jpg`| Gallery — small tile    | 3:2 landscape               |
-| `frontend/public/gallery/photo-5.jpg`| Gallery — wide tile     | 3:2 landscape               |
-| `frontend/public/gallery/photo-6.jpg`| Gallery — wide tile     | 3:2 landscape               |
-
-More detailed instructions are in `frontend/public/images/README.md` and
-`frontend/public/gallery/README.md`.
-
----
-
-## Venue QR code
-
-Venue QR codes are generated into:
-
-```text
-frontend/public/images/location-qr.png
-frontend/public/images/location-qr.svg
-```
-
-To regenerate:
-```bash
-npm run generate:qr
-```
-Or from the `frontend/` directory:
-```bash
-npm run generate:qr
-```
-
----
-
-## Deploying to Vercel
-
-### Unified Deployment (Front end + Serverless Back end)
-1. Push the project to GitHub/GitLab.
-2. In Vercel, import the repository root.
-3. Vercel automatically detects the configuration from `vercel.json`:
-   - Build command: `npm run build`
-   - Output directory: `frontend/dist`
-   - Serverless functions: `api/*.js` (which invokes `backend/src/app.js`)
-4. Add environment variables in Vercel:
-   - `MONGODB_URI` — your MongoDB Atlas connection string
-   - `CLIENT_ORIGIN` — (optional) only needed if frontend domain differs
-5. Deploy!
-
-### Separate Hosting
-- **Front end**: Can be hosted on Vercel, Netlify, Cloudflare Pages, etc. Set root directory to `frontend`, build command to `npm run build`, and output to `dist`. Set `VITE_API_URL` to your backend's URL.
-- **Back end**: Can be hosted on Render, Railway, Fly.io, or any Node.js host. Set root directory to `backend`, start command to `npm start`.
+In local development, requests to `/api` are automatically proxied to port 5000 by Vite.
 
 ---
 
@@ -220,28 +120,27 @@ npm run generate:qr
 
 ```text
 .
-├── api/                             # Vercel serverless entry points
-│   ├── [...path].js
-│   └── index.js
-├── backend/                         # Express & Mongoose API
+├── backend/                         # Express & Mongoose API (for Render)
 │   ├── src/
 │   │   ├── lib/db.js                # MongoDB connection helper
 │   │   ├── models/Message.js        # Blessing schema
 │   │   ├── routes/messages.js       # GET/POST blessing routes
 │   │   ├── app.js                   # Express application setup
-│   │   └── index.js                 # Standalone local server entry
+│   │   └── index.js                 # Standalone server entry
 │   ├── .env.example
 │   ├── .gitignore
-│   ├── package.json
-│   └── README.md
-├── frontend/                        # React 19 + Vite Application
+│   ├── package.json                 # Standalone backend dependencies & start script
+│   ├── render.yaml                  # Render Blueprint definition
+│   └── README.md                    # Render deployment guide
+│
+├── frontend/                        # React 19 + Vite Application (for Vercel)
 │   ├── public/                      # Static assets (images, gallery, favicon)
 │   │   ├── gallery/
 │   │   └── images/
 │   ├── scripts/
 │   │   └── generate-qr.mjs          # QR code generator script
 │   ├── src/                         # React components & styles
-│   │   ├── components/              # UI components (Hero, Blessings, etc.)
+│   │   ├── components/              # UI components (Hero, Blessings, Navbar, etc.)
 │   │   ├── data/content.js          # Bilingual texts
 │   │   ├── lib/                     # API client, calendar, scroll utils
 │   │   └── styles/                  # Global and component CSS
@@ -249,12 +148,14 @@ npm run generate:qr
 │   ├── .gitignore
 │   ├── .oxlintrc.json
 │   ├── index.html
-│   ├── package.json
-│   ├── README.md
+│   ├── package.json                 # Standalone frontend dependencies & build script
+│   ├── README.md                    # Vercel deployment guide
+│   ├── vercel.json                  # Vercel SPA rewrites & Vite build config
 │   └── vite.config.js
+│
 ├── .env.example                     # Root environment variable template
 ├── .gitignore                       # Root gitignore
 ├── package.json                     # Root workspace coordinator
-├── README.md                        # Documentation
-└── vercel.json                      # Vercel deployment configuration
+├── README.md                        # Project documentation
+└── vercel.json                      # Fallback Vercel config if deployed from repo root
 ```

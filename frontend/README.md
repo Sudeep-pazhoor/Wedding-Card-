@@ -1,43 +1,48 @@
-# Wedding Invitation — Frontend
+# Sundeep & Neeraja — Frontend (React 19 + Vite)
 
-React 19, Vite 8, GSAP, and Lenis single-page wedding invitation for **Sundeep & Neeraja**.
+Bilingual wedding invitation for **Sundeep & Neeraja** built with React 19, Vite, GSAP, and Lenis.
 
-## Features
+---
 
-- **Bilingual**: English and Malayalam text toggle with URL and `localStorage` persistence.
-- **Traditional Hindu Aesthetic**: Maroon, gold, and ivory parchment palette with traditional motifs.
-- **GSAP & Lenis Smooth Motion**: Smooth animations with full `prefers-reduced-motion` accessibility support.
-- **Interactive Wall**: Blessing marquee with real-time API sync and offline local storage fallback.
-- **Gallery & Lightbox**: Responsive photo gallery with keyboard navigation.
-- **Venue Map & QR Code**: Google Maps links and generated QR code.
+## Deploying to Vercel
 
-## Setup & Running
+You can deploy this frontend directly on **Vercel**.
 
-### 1. Install dependencies
+### Step-by-Step Vercel Deployment:
+
+1. **Log in to [Vercel](https://vercel.com/)**.
+2. Click **Add New...** → **Project**.
+3. Import your GitHub repository.
+4. In the configuration screen:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click `Edit` and select `frontend`
+   - **Build Command**: `npm run build` (or left to default `vite build`)
+   - **Output Directory**: `dist`
+5. Under **Environment Variables**, add:
+   - `VITE_API_URL`: The URL of your Render backend service (e.g. `https://neeraja-sundeep-backend.onrender.com` without trailing slash).
+6. Click **Deploy**.
+
+> **Note**: Both `frontend/vercel.json` and root `vercel.json` are already preconfigured, so routing and SPA deep links work automatically.
+
+---
+
+## Local Development
+
 ```bash
+# 1. Install dependencies
 npm install
-```
 
-### 2. Development Server
-```bash
+# 2. Start local dev server
 npm run dev
 ```
-Runs at `http://localhost:5173`. Requests to `/api` are automatically proxied to the backend at `http://localhost:5000`.
 
-### 3. Production Build
+Runs at `http://localhost:5173`. In development, requests to `/api` automatically proxy to `http://localhost:5000`.
+
+---
+
+## Production Build Check
+
 ```bash
 npm run build
-```
-Builds the production-ready static assets to `dist/`.
-
-### 4. Preview Build
-```bash
 npm run preview
 ```
-
-### 5. Generate Venue QR Code
-```bash
-npm run generate:qr
-```
-Regenerates QR codes in `public/images/location-qr.(png|svg)`.
-

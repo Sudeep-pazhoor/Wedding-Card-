@@ -4,8 +4,8 @@ import { hasDatabaseConfig, connectDB } from "./lib/db.js";
 
 const port = Number(process.env.PORT) || 5000;
 
-app.listen(port, () => {
-  console.log(`\n  Sundeep & Neeraja API  →  http://localhost:${port}/api/health`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`\n  Sundeep & Neeraja API  →  http://0.0.0.0:${port}/health`);
   if (!hasDatabaseConfig()) {
     console.log(
       "  MONGODB_URI is not set — the site will use on-device blessings until it is.\n"
@@ -13,8 +13,8 @@ app.listen(port, () => {
     return;
   }
   connectDB()
-    .then(() => console.log("  MongoDB connected.\n"))
+    .then(() => console.log("  MongoDB connected successfully.\n"))
     .catch((error) =>
-      console.log(`  MongoDB not reachable yet: ${error.message}\n`)
+      console.log(`  MongoDB connection notice: ${error.message}\n`)
     );
 });
