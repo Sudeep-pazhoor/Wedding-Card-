@@ -84,15 +84,15 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     };
   }, []);
 
-  // 5-7 seconds alert description: fades out at 5.8s and unmounts at 6.4s
+  // 10 seconds alert description: fades out at 9.4s and unmounts at 10s
   useEffect(() => {
     const fadeTimer = window.setTimeout(() => {
       setAlertFading(true);
-    }, 5800);
+    }, 9400);
 
     const hideTimer = window.setTimeout(() => {
       setShowAlert(false);
-    }, 6400);
+    }, 10000);
 
     return () => {
       window.clearTimeout(fadeTimer);
@@ -101,7 +101,16 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 32);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 32);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -252,7 +261,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
                 {copy.audio?.alertTitle || "Background Music"}
               </strong>
               <p className="audio-alert__desc">
-                {copy.audio?.alertDesc || "You can pause or play the melody anytime from the header button."}
+                {copy.audio?.alertDesc || "Click anywhere to play music. To pause, click the header button."}
               </p>
             </div>
             <div className="audio-alert__actions">

@@ -609,6 +609,7 @@ p {
   transform-origin: 0 50%;
   transform: scaleX(0);
   background: linear-gradient(90deg, var(--gold), var(--maroon), var(--gold));
+  will-change: transform;
 }
 
 /* ---------- scrollbar ---------- */

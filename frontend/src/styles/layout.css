@@ -411,7 +411,7 @@
   background: linear-gradient(90deg, var(--gold), var(--gold-deep), var(--maroon));
   width: 100%;
   transform-origin: left center;
-  animation: audio-countdown 6s linear forwards;
+  animation: audio-countdown 10s linear forwards;
 }
 
 @keyframes audio-countdown {

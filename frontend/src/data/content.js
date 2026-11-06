@@ -29,7 +29,7 @@ export const content = {
       pause: "Pause music",
       label: "Music",
       alertTitle: "Background Music Playing",
-      alertDesc: "You can pause or play the wedding melody anytime using this header button.",
+      alertDesc: "Click anywhere to play music. To pause, click the header button.",
       pauseBtn: "Pause",
       dismiss: "Dismiss",
     },
@@ -45,7 +45,7 @@ export const content = {
     },
     hero: {
       om: "ॐ",
-      shloka: "ഓം ശ്രീ ഗണേശായ നമഃ",
+      shloka: "ഓം ശ്രീ ഗണപതയേ   നമഃ",
       eyebrow: "Together with our families",
       kicker: "The wedding of",
       groom: "Sundeep",
@@ -76,7 +76,7 @@ export const content = {
     invite: {
       kicker: "With immense joy",
       title: "You are invited",
-      om: "ഓം ശ്രീ ഗണേശായ നമഃ",
+      om: "ഓം ശ്രീ ഗണപതയേ നമഃ",
       hosts: "Suresh Pazhoor & Sreeja Suresh",
       address:
         "Pazhoor Illam, Arukizhaya, Manjeri, Malappuram District, Kerala",
@@ -248,8 +248,8 @@ export const content = {
       play: "സംഗീതം കേൾക്കുക",
       pause: "സംഗീതം നിർത്തുക",
       label: "സംഗീതം",
-      alertTitle: "പശ്ചാത്തല സംഗീതം പ്ലേ ചെയ്യുന്നു",
-      alertDesc: "ആവശ്യമെങ്കിൽ മുകളിലെ ബട്ടൺ വഴി സംഗീതം പോസ് ചെയ്യാം അല്ലെങ്കിൽ വീണ്ടും പ്ലേ ചെയ്യാം.",
+      alertTitle: "പശ്ചാത്തല സംഗീതം",
+      alertDesc: "സംഗീതം കേൾക്കാൻ സ്ക്രീനിൽ എവിടെയെങ്കിലും ക്ലിക്ക് ചെയ്യുക. നിർത്താൻ മുകളിലെ ബട്ടൺ അമർത്തുക.",
       pauseBtn: "പോസ് ചെയ്യുക",
       dismiss: "ശരി",
     },
@@ -275,7 +275,7 @@ export const content = {
       primaryCta: "അനുഗ്രഹം അറിയിക്കാം",
       secondaryCta: "ക്ഷണം",
       scroll: "താഴേക്ക് സ്ക്രോൾ ചെയ്യുക",
-      seal: "സുന്ദീപ് · നീരജ · 24 ജനുവരി 2027 · ",
+      seal: "സന്ദീപ് · നീരജ · 24 ജനുവരി 2027 · ",
       imageAlt: "സുന്ദീപും നീരജയും",
     },
     countdown: {
@@ -356,7 +356,7 @@ export const content = {
       kicker: "ഇവിടെ ഒത്തുചേരാം",
       title: "ഹിൽട്ടൺ കൺവെൻഷൻ സെന്റർ",
       addressLines: [
-        "വെട്ടേക്കോഡ് റോഡ്, വയപ്പരപ്പടി",
+        "വേട്ടേക്കോഡ് റോഡ്, വയപ്പാറപ്പടി ",
         "മഞ്ചേരി, മലപ്പുറം ജില്ല",
         "കേരളം, ഇന്ത്യ",
       ],
@@ -375,7 +375,7 @@ export const content = {
       qrPending: "ലൊക്കേഷൻ ക്യൂആർ ഇവിടെ ചേർക്കാം",
       travelTitle: "യാത്രയും സഹായവും",
       travelText:
-        "ദിവസത്തിൽ എന്ത് സഹായം വേണമെങ്കിലും സുദീപിനെ വിളിക്കാം: 96333 94120. ഞങ്ങൾ ഒപ്പമുണ്ട്.",
+        "ദിവസത്തിൽ എന്ത് സഹായം വേണമെങ്കിലും സുദീപിനെ വിളിക്കാം: 8281829839. ഞങ്ങൾ ഒപ്പമുണ്ട്.",
       arriveLabel: "എത്തേണ്ട സമയം",
       arriveText: "രാവിലെ 9:30-ന് മുൻപ്, മുഹൂർത്തത്തിന് മുൻപ് ഇരിപ്പിടം കണ്ടെത്താൻ.",
     },
@@ -384,7 +384,7 @@ export const content = {
       title: "ഞങ്ങളുടെ ഓർമ്മകൾ",
       subtitle:
         "ഞങ്ങളുടെ കഥയിലെ ചില ചിത്രങ്ങൾ — വിവാഹത്തിന്റെ ഓർമ്മകൾ ഉടൻ ഇവിടെ നിറയും.",
-      note: "വിവാഹത്തിനു ശേഷം ചിത്രങ്ങൾ ചേർക്കുന്നതാണ്.",
+      //note: "വിവാഹത്തിനു ശേഷം ചിത്രങ്ങൾ ചേർക്കുന്നതാണ്.",
       coming: "ചിത്രം ഉടൻ വരുന്നു",
       captions: [
         "തുടക്കം ഇവിടെ",
@@ -399,16 +399,16 @@ export const content = {
     },
     blessings: {
       kicker: "അനുഗ്രഹ വേദി",
-      title: "ഒരു അനുഗ്രഹം എഴുതാം",
+      title: "ആശംസകൾ അറിയിക്കാം ",
       subtitle:
-        "ദമ്പതികൾക്കായി ഒരു ആശംസയോ ഓർമ്മയോ പ്രാർത്ഥനയോ എഴുതുക. നിങ്ങളുടെ വാക്കുകൾ എല്ലാവർക്കും വായിക്കാം.",
+        "ദമ്പതികൾക്കായി ഒരു ആശംസയോ, ഓർമ്മയോ, പ്രാർത്ഥനയോ എഴുതുക. നിങ്ങളുടെ വാക്കുകൾ എല്ലാവർക്കും വായിക്കാം.",
       formTitle: "ദമ്പതികൾക്കായി ചില വാക്കുകൾ",
       formNote: "നിങ്ങളുടെ പേരും സന്ദേശവും ഈ പേജ് സന്ദർശിക്കുന്ന എല്ലാവർക്കും കാണാം.",
       nameLabel: "നിങ്ങളുടെ പേര്",
       namePlaceholder: "ഉദാ: അഞ്ജലി & കുടുംബം",
       messageLabel: "നിങ്ങളുടെ അനുഗ്രഹം",
       messagePlaceholder: "ഒരു ആശംസ, ഒരു ഓർമ്മ, ഒരു പ്രാർത്ഥന…",
-      attendingLabel: "നിങ്ങൾ എത്തുമോ?",
+      attendingLabel: "നിങ്ങൾ എത്തുമോ ?",
       attendingOptions: [
         { value: "attending", label: "സ്വന്തം സാന്നിധ്യത്തോടെ" },
         { value: "blessings", label: "മനസ്സിൽ ഒപ്പം" },

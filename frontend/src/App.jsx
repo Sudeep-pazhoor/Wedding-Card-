@@ -43,7 +43,7 @@ export default function App() {
     document.documentElement.dataset.lang = lang;
     document.title =
       lang === "ml"
-        ? "സുന്ദീപ് & നീരജ · 2027 ജനുവരി 24"
+        ? "സന്ദീപ് & നീരജ · 2027 ജനുവരി 24"
         : "Sundeep & Neeraja · 24 January 2027";
 
     try {

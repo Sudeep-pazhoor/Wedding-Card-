@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createBlessing, fetchBlessings } from "../lib/api";
+import { prefersReducedMotion } from "../lib/scroll";
 import { Icon } from "./Icon";
 import { OmCircle, SectionHeading } from "./Ornaments";
 
@@ -55,11 +56,220 @@ function BlessingCard({ item, copy, lang }) {
   );
 }
 
-function MarqueeRow({ items, copy, lang, reverse = false, duration, singleTrack = false }) {
+function MarqueeRow({
+  items,
+  copy,
+  lang,
+  speed = 80,
+  singleTrack = false,
+}) {
+  const wrapRef = useRef(null);
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);
+  const isInteractingRef = useRef(false);
+  const isDraggingRef = useRef(false);
+  const resumeTimerRef = useRef(null);
+  const lastTimeRef = useRef(0);
+  const lastPointerXRef = useRef(0);
+  const lastPointerTimeRef = useRef(0);
+  const velocityRef = useRef(0);
+  const animIdRef = useRef(null);
+  const singleWRef = useRef(0);
+
+  // Ensure each group has enough items to fill even wide viewports smoothly
+  const displayItems = useMemo(() => {
+    if (!items || items.length === 0) return [];
+    if (singleTrack) return items;
+    let list = items;
+    while (list.length < 4) {
+      list = [...list, ...items];
+    }
+    return list;
+  }, [items, singleTrack]);
+
+  // 2 identical groups for seamless transform wrapping
   const groups = [0, 1];
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track || displayItems.length === 0) return;
+
+    if (prefersReducedMotion()) return;
+
+    lastTimeRef.current = performance.now();
+
+    const measureWidth = () => {
+      if (track) {
+        singleWRef.current = track.scrollWidth / 2;
+      }
+    };
+    measureWidth();
+    const timer = window.setTimeout(measureWidth, 250);
+    window.addEventListener("resize", measureWidth, { passive: true });
+
+    const step = (now) => {
+      const dt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
+      lastTimeRef.current = now;
+      let singleW = singleWRef.current;
+      if (singleW <= 0) {
+        singleW = track.scrollWidth / 2;
+        singleWRef.current = singleW;
+      }
+
+      if (singleW > 0) {
+        if (!isInteractingRef.current) {
+          // If there is flick momentum, smoothly decelerate it
+          if (Math.abs(velocityRef.current) > 8) {
+            offsetRef.current -= velocityRef.current * dt;
+            velocityRef.current *= 0.92;
+          } else {
+            velocityRef.current = 0;
+            offsetRef.current += speed * dt;
+          }
+        }
+
+        // Seamless infinite wrap-around
+        while (offsetRef.current >= singleW) offsetRef.current -= singleW;
+        while (offsetRef.current < 0) offsetRef.current += singleW;
+
+        track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
+      }
+
+      animIdRef.current = requestAnimationFrame(step);
+    };
+
+    animIdRef.current = requestAnimationFrame(step);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("resize", measureWidth);
+      if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
+      window.clearTimeout(resumeTimerRef.current);
+    };
+  }, [displayItems, speed]);
+
+  const onDragStart = (clientX) => {
+    isInteractingRef.current = true;
+    isDraggingRef.current = true;
+    window.clearTimeout(resumeTimerRef.current);
+    velocityRef.current = 0;
+    lastPointerXRef.current = clientX;
+    lastPointerTimeRef.current = performance.now();
+  };
+
+  const onDragMove = (clientX) => {
+    if (!isDraggingRef.current || !trackRef.current) return;
+    const now = performance.now();
+    const dx = clientX - lastPointerXRef.current;
+    const dt = (now - lastPointerTimeRef.current) / 1000;
+    if (dt > 0.005) {
+      velocityRef.current = dx / dt;
+    }
+    lastPointerXRef.current = clientX;
+    lastPointerTimeRef.current = now;
+
+    offsetRef.current -= dx;
+    let singleW = singleWRef.current;
+    if (singleW <= 0 && trackRef.current) {
+      singleW = trackRef.current.scrollWidth / 2;
+      singleWRef.current = singleW;
+    }
+    if (singleW > 0) {
+      while (offsetRef.current >= singleW) offsetRef.current -= singleW;
+      while (offsetRef.current < 0) offsetRef.current += singleW;
+      trackRef.current.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
+    }
+  };
+
+  const onDragEnd = () => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    window.clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = window.setTimeout(() => {
+      isInteractingRef.current = false;
+      lastTimeRef.current = performance.now();
+    }, 1500);
+  };
+
+  // Mouse drag handling
+  const handlePointerDown = (e) => {
+    if (e.pointerType === "touch") return; // Touch is handled by touch listeners
+    if (e.button !== undefined && e.button !== 0) return;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    onDragStart(e.clientX);
+  };
+
+  const handlePointerMove = (e) => {
+    if (e.pointerType === "touch") return;
+    onDragMove(e.clientX);
+  };
+
+  const handlePointerUp = (e) => {
+    if (e.pointerType === "touch") return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    onDragEnd();
+  };
+
+  // Touch swipe handling for mobile
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      onDragStart(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      onDragMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    onDragEnd();
+  };
+
+  const handleMouseEnter = () => {
+    isInteractingRef.current = true;
+    window.clearTimeout(resumeTimerRef.current);
+  };
+
+  const handleMouseLeave = () => {
+    if (!isDraggingRef.current) {
+      resumeTimerRef.current = window.setTimeout(() => {
+        isInteractingRef.current = false;
+        lastTimeRef.current = performance.now();
+      }, 700);
+    }
+  };
+
   return (
-    <div className={`marquee ${reverse ? "marquee--reverse" : ""} ${singleTrack ? "marquee--single" : ""}`}>
-      <div className="marquee__track" style={{ "--duration": `${duration}s` }}>
+    <div
+      ref={wrapRef}
+      data-lenis-prevent
+      className={`marquee ${singleTrack ? "marquee--single" : ""}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      tabIndex={0}
+      role="region"
+      aria-label={copy.blessings.wallTitle}
+    >
+      <div ref={trackRef} className="marquee__track">
         {groups.map((group) => (
           <div
             className={`marquee__group ${singleTrack ? "marquee__group--single" : ""}`}
@@ -67,8 +277,8 @@ function MarqueeRow({ items, copy, lang, reverse = false, duration, singleTrack 
             aria-hidden={group > 0 ? "true" : undefined}
             role={group === 0 ? "list" : undefined}
           >
-            {items.map((item, idx) => (
-              <div role="listitem" key={`${group}-${item._id || idx}`}>
+            {displayItems.map((item, idx) => (
+              <div role="listitem" key={`${group}-${item._id || idx}-${idx}`}>
                 <BlessingCard item={item} copy={copy} lang={lang} />
               </div>
             ))}
@@ -115,9 +325,6 @@ export default function Blessings({ copy, lang }) {
   const split = Math.ceil(wallItems.length / 2);
   const rowOne = isMultiRow ? wallItems.slice(0, split) : wallItems;
   const rowTwo = isMultiRow ? wallItems.slice(split) : [];
-
-  // Duration adapted to number of cards for relaxed readability
-  const singleDuration = messages.length === 1 ? 26 : messages.length === 2 ? 32 : 38;
 
   const update = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }));
@@ -308,7 +515,7 @@ export default function Blessings({ copy, lang }) {
               items={rowOne}
               copy={copy}
               lang={lang}
-              duration={isSingleTrack ? singleDuration : 64}
+              speed={isSingleTrack ? 85 : 80}
               singleTrack={isSingleTrack}
             />
             {isMultiRow && rowTwo.length > 0 && (
@@ -316,8 +523,7 @@ export default function Blessings({ copy, lang }) {
                 items={rowTwo}
                 copy={copy}
                 lang={lang}
-                reverse
-                duration={78}
+                speed={80}
                 singleTrack={false}
               />
             )}

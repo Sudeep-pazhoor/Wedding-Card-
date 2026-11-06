@@ -17,11 +17,11 @@ export function initSmoothScroll() {
   if (lenis || prefersReducedMotion()) return () => {};
 
   lenis = new Lenis({
-    duration: 1.15,
-    lerp: 0.09,
+    duration: 1.1,
+    lerp: 0.1,
     smoothWheel: true,
     wheelMultiplier: 1,
-    touchMultiplier: 1.5,
+    touchMultiplier: 1,
   });
 
   const onScroll = () => ScrollTrigger.update();
@@ -29,7 +29,7 @@ export function initSmoothScroll() {
 
   const raf = (time) => lenis?.raf(time * 1000);
   gsap.ticker.add(raf);
-  gsap.ticker.lagSmoothing(0);
+  gsap.ticker.lagSmoothing(500, 33);
 
   const refresh = () => ScrollTrigger.refresh();
   window.addEventListener("load", refresh);
