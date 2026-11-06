@@ -155,7 +155,7 @@ export const content = {
       qrPending: "Location QR will be added here",
       travelTitle: "Travel & help",
       travelText:
-        "For anything at all on the day, call Sudeep at 96333 94120. We are here to help.",
+        "For anything at all on the day, call Sudeep at 8281829839. We are here to help.",
       arriveLabel: "Best time to arrive",
       arriveText: "By 9:30 am, so you can settle in before the muhurtham.",
     },
