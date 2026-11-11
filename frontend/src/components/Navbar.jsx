@@ -4,9 +4,9 @@ import { Lotus } from "./Ornaments";
 import { pauseScroll, resumeScroll, scrollToId } from "../lib/scroll";
 
 const links = [
+  { id: "venue", key: "venue" },
   { id: "invitation", key: "invitation" },
   { id: "celebration", key: "celebration" },
-  { id: "venue", key: "venue" },
   { id: "gallery", key: "gallery" },
   { id: "blessings", key: "blessings" },
 ];
@@ -20,7 +20,8 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   const [alertFading, setAlertFading] = useState(false);
   const iframeRef = useRef(null);
   const isMapSilencedRef = useRef(false);
-  const interactionTriggeredRef = useRef(false);
+  const isUserPausedRef = useRef(false);
+  const gestureCleanedRef = useRef(false);
 
   const sendYouTubeCommand = (func, args = []) => {
     try {
@@ -39,38 +40,93 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     }
   };
 
-  const handleIframeLoad = () => {
-    const play = () => {
-      if (isMapSilencedRef.current) return;
-      sendYouTubeCommand("listening");
-      sendYouTubeCommand("setVolume", [100]);
-      sendYouTubeCommand("unMute");
-      sendYouTubeCommand("playVideo");
-    };
-    play();
-    window.setTimeout(play, 600);
-    window.setTimeout(play, 1500);
+  const playAudio = (force = false) => {
+    if (isMapSilencedRef.current && !force) return;
+    if (isUserPausedRef.current && !force) return;
+
+    sendYouTubeCommand("listening");
+    sendYouTubeCommand("setVolume", [100]);
+    sendYouTubeCommand("unMute");
+    sendYouTubeCommand("playVideo");
+    setIsPlaying(true);
   };
 
-  const toggleAudio = () => {
+  const handleIframeLoad = () => {
+    if (isUserPausedRef.current) return;
+    playAudio();
+    window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 300);
+    window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 900);
+    window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 2000);
+  };
+
+  const toggleAudio = (e) => {
+    if (e) e.stopPropagation();
     if (isPlaying) {
+      // User paused: mark paused so scroll or click anywhere will NEVER play music
+      isUserPausedRef.current = true;
       sendYouTubeCommand("pauseVideo");
       setIsPlaying(false);
     } else {
+      // User explicitly clicked the button to resume music
+      isUserPausedRef.current = false;
       isMapSilencedRef.current = false;
-      sendYouTubeCommand("unMute");
-      sendYouTubeCommand("playVideo");
-      setIsPlaying(true);
+      playAudio(true);
     }
   };
 
-  // Browser Autoplay Policy: if unmuted audio is blocked until user interaction,
-  // ensure the first touch, click, scroll or keypress un-mutes and plays.
-  // HOWEVER: if the user clicks the location map or "click here" to view the map,
-  // NO song is played, and music is explicitly silenced.
+  // Autoplay on load/refresh: triggers immediately on mount and retries to catch iframe readiness.
+  // Also listens to YouTube postMessage events, and as a fallback attaches passive page listeners
+  // so an early gesture un-mutes if blocked by browser autoplay policy.
+  // CRITICAL: Once user pauses the music, it will ONLY turn on when the user presses the button itself.
   useEffect(() => {
-    const onFirstInteraction = (e) => {
-      if (interactionTriggeredRef.current) return;
+    playAudio();
+    const t1 = window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 250);
+    const t2 = window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 650);
+    const t3 = window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 1400);
+    const t4 = window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 2800);
+
+    const onMessage = (event) => {
+      try {
+        if (!event.data || isUserPausedRef.current) return;
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (data.event === "onReady" || data.info?.playerState === 2 || data.info?.playerState === -1) {
+          playAudio();
+        }
+      } catch {
+        /* ignore non-json messages */
+      }
+    };
+    window.addEventListener("message", onMessage);
+
+    const removeGestureListeners = () => {
+      if (gestureCleanedRef.current) return;
+      gestureCleanedRef.current = true;
+      window.removeEventListener("pointerdown", onAnyGesture);
+      window.removeEventListener("touchstart", onAnyGesture);
+      window.removeEventListener("scroll", onAnyGesture);
+      window.removeEventListener("keydown", onAnyGesture);
+    };
+
+    const onAnyGesture = (e) => {
+      // If user paused the music, never resume on scroll/click
+      if (isUserPausedRef.current) {
+        removeGestureListeners();
+        return;
+      }
 
       const target = e?.target;
       const isMapTarget =
@@ -81,33 +137,20 @@ export default function Navbar({ copy, lang, onToggleLang }) {
         );
 
       if (isMapTarget) {
-        // User clicked the map or location directions: strictly prevent music
         isMapSilencedRef.current = true;
         sendYouTubeCommand("pauseVideo");
         setIsPlaying(false);
         return;
       }
 
-      interactionTriggeredRef.current = true;
-      sendYouTubeCommand("unMute");
-      sendYouTubeCommand("playVideo");
-      setIsPlaying(true);
-      removeListeners();
+      playAudio();
+      removeGestureListeners();
     };
 
-    const removeListeners = () => {
-      window.removeEventListener("pointerdown", onFirstInteraction, true);
-      window.removeEventListener("touchstart", onFirstInteraction, true);
-      window.removeEventListener("click", onFirstInteraction, true);
-      window.removeEventListener("keydown", onFirstInteraction, true);
-      window.removeEventListener("scroll", onFirstInteraction, true);
-    };
-
-    window.addEventListener("pointerdown", onFirstInteraction, true);
-    window.addEventListener("touchstart", onFirstInteraction, true);
-    window.addEventListener("click", onFirstInteraction, true);
-    window.addEventListener("keydown", onFirstInteraction, true);
-    window.addEventListener("scroll", onFirstInteraction, true);
+    window.addEventListener("pointerdown", onAnyGesture, { passive: true });
+    window.addEventListener("touchstart", onAnyGesture, { passive: true });
+    window.addEventListener("scroll", onAnyGesture, { passive: true });
+    window.addEventListener("keydown", onAnyGesture, { passive: true });
 
     const onSilence = () => {
       isMapSilencedRef.current = true;
@@ -117,7 +160,12 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     window.addEventListener("sn:silence-music", onSilence);
 
     return () => {
-      removeListeners();
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      window.clearTimeout(t4);
+      window.removeEventListener("message", onMessage);
+      removeGestureListeners();
       window.removeEventListener("sn:silence-music", onSilence);
     };
   }, []);
@@ -237,9 +285,13 @@ export default function Navbar({ copy, lang, onToggleLang }) {
               aria-label={isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}
               title={isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}
             >
+              <span className="audio-toggle__dot" aria-hidden="true" />
               <Icon name={isPlaying ? "pause" : "play"} size={13} />
               <span className="audio-toggle__text">
-                {isPlaying ? (copy.audio?.label || "Music") : (copy.audio?.play || "Play")}
+                {copy.audio?.label || "Music"}
+              </span>
+              <span className="audio-toggle__badge" aria-hidden="true">
+                {isPlaying ? "ON" : "OFF"}
               </span>
               <span className="audio-toggle__bars" aria-hidden="true">
                 <span className="bar bar--1" />
@@ -305,7 +357,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
             <div className="audio-alert__actions">
               <button
                 type="button"
-                className="audio-alert__btn-toggle"
+                className={`audio-alert__btn-toggle ${isPlaying ? "is-playing" : "is-paused"}`}
                 onClick={toggleAudio}
                 aria-label={isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}
               >
@@ -347,7 +399,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
           ref={iframeRef}
           width="200"
           height="200"
-          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
+          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&mute=0&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
           title="Wedding Background Music"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           onLoad={handleIframeLoad}
@@ -388,8 +440,12 @@ export default function Navbar({ copy, lang, onToggleLang }) {
                 tabIndex={menuOpen ? 0 : -1}
                 aria-label={isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}
               >
+                <span className="audio-toggle__dot" aria-hidden="true" />
                 <Icon name={isPlaying ? "pause" : "play"} size={14} />
-                <span>{isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}</span>
+                <span>{copy.audio?.label || "Music"}</span>
+                <span className="audio-toggle__badge" aria-hidden="true">
+                  {isPlaying ? "ON" : "OFF"}
+                </span>
                 <span className="audio-toggle__bars" aria-hidden="true">
                   <span className="bar bar--1" />
                   <span className="bar bar--2" />

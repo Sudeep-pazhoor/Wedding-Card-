@@ -62,7 +62,7 @@ export default function TopLocation({ copy }) {
   return (
     <section
       className="top-location"
-      id="top-location"
+      id="venue"
       aria-labelledby="top-location-title"
       data-no-audio="true"
     >

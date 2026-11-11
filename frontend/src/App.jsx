@@ -9,7 +9,6 @@ import Invitation from "./components/Invitation";
 import Navbar from "./components/Navbar";
 import ScrollProgress from "./components/ScrollProgress";
 import TopLocation from "./components/TopLocation";
-import Venue from "./components/Venue";
 import { content } from "./data/content";
 import {
   gsap,
@@ -118,7 +117,6 @@ export default function App() {
         <Countdown copy={copy} />
         <Invitation copy={copy} />
         <Celebration copy={copy} />
-        <Venue copy={copy} />
         <Gallery copy={copy} />
         <Blessings copy={copy} lang={lang} />
       </main>
