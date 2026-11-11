@@ -94,7 +94,7 @@ export const content = {
       signature: "With love and prayers",
       signatureName: "The Pazhoor & Kakkattu families",
       portraitLabel: "A portrait of the couple",
-      portraitNote: "Photograph coming soon",
+      portraitNote: "Loading...wait a second please",
       portraitCaption: "Sundeep & Neeraja",
       quote: "Two families, one celebration, a lifetime of togetherness.",
       detailsLabel: "The invitation",

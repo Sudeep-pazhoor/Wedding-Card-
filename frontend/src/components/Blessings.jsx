@@ -62,13 +62,7 @@ function BlessingCard({ item, copy, lang }) {
   );
 }
 
-function MarqueeRow({
-  items,
-  copy,
-  lang,
-  speed = 80,
-  singleTrack = false,
-}) {
+function MarqueeRow({ items, copy, lang, speed = 75 }) {
   const wrapRef = useRef(null);
   const trackRef = useRef(null);
   const offsetRef = useRef(0);
@@ -82,17 +76,17 @@ function MarqueeRow({
   const animIdRef = useRef(null);
   const singleWRef = useRef(0);
 
-  // When singleTrack is true (few cards), keep exact list without duplication.
-  // When multi-row, ensure each group fills wide viewports.
+  // When there are 5 or more cards (like the cards in database), use the exact list in order.
+  // When there are fewer than 5 cards, repeat until >= 5 so the single-row track loops smoothly without gaps.
   const displayItems = useMemo(() => {
     if (!items || items.length === 0) return [];
-    if (singleTrack) return items;
+    if (items.length >= 5) return items;
     let list = items;
-    while (list.length < 4) {
+    while (list.length < 5) {
       list = [...list, ...items];
     }
     return list;
-  }, [items, singleTrack]);
+  }, [items]);
 
   // 2 identical groups for seamless transform wrapping
   const groups = [0, 1];
@@ -261,7 +255,7 @@ function MarqueeRow({
     <div
       ref={wrapRef}
       data-lenis-prevent
-      className={`marquee ${singleTrack ? "marquee--single" : ""}`}
+      className="marquee"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -279,7 +273,7 @@ function MarqueeRow({
       <div ref={trackRef} className="marquee__track">
         {groups.map((group) => (
           <div
-            className={`marquee__group ${singleTrack ? "marquee__group--single" : ""}`}
+            className="marquee__group"
             key={group}
             aria-hidden={group > 0 ? "true" : undefined}
             role={group === 0 ? "list" : undefined}
@@ -312,15 +306,6 @@ export default function Blessings({ copy, lang }) {
     };
   }, []);
 
-  // Show 1 horizontal flowing path when there are few cards (1-3 cards).
-  // Only show the down row (second row) when more cards are found (>= 4 cards).
-  const isMultiRow = messages.length >= 4;
-  const isSingleTrack = messages.length < 4;
-
-  const split = Math.ceil(messages.length / 2);
-  const rowOne = isMultiRow ? messages.slice(0, split) : messages;
-  const rowTwo = isMultiRow ? messages.slice(split) : [];
-
   return (
     <section className="section blessings" id="blessings" aria-labelledby="blessings-title">
       <div className="blessings__glow" aria-hidden="true" />
@@ -343,24 +328,12 @@ export default function Blessings({ copy, lang }) {
 
       <div className="blessings__wall">
         {messages.length > 0 ? (
-          <>
-            <MarqueeRow
-              items={rowOne}
-              copy={copy}
-              lang={lang}
-              speed={isSingleTrack ? 85 : 80}
-              singleTrack={isSingleTrack}
-            />
-            {isMultiRow && rowTwo.length > 0 && (
-              <MarqueeRow
-                items={rowTwo}
-                copy={copy}
-                lang={lang}
-                speed={80}
-                singleTrack={false}
-              />
-            )}
-          </>
+          <MarqueeRow
+            items={messages}
+            copy={copy}
+            lang={lang}
+            speed={75}
+          />
         ) : (
           <div className="container">
             <div className="blessings__empty">
