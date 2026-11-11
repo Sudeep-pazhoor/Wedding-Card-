@@ -15,7 +15,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("");
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
   const [alertFading, setAlertFading] = useState(false);
   const iframeRef = useRef(null);
@@ -60,7 +60,6 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     sendYouTubeCommand("setVolume", [100]);
     sendYouTubeCommand("unMute");
     sendYouTubeCommand("playVideo");
-    setIsPlaying(true);
   };
 
   const handleIframeLoad = () => {
@@ -89,7 +88,11 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       // User explicitly clicked the button to resume music
       isUserPausedRef.current = false;
       isMapSilencedRef.current = false;
-      playAudio(true);
+      sendListening();
+      sendYouTubeCommand("setVolume", [100]);
+      sendYouTubeCommand("unMute");
+      sendYouTubeCommand("playVideo");
+      setIsPlaying(true);
     }
   };
 
@@ -114,10 +117,29 @@ export default function Navbar({ copy, lang, onToggleLang }) {
 
     const onMessage = (event) => {
       try {
-        if (!event.data || isUserPausedRef.current) return;
+        if (!event.data) return;
         const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        if (data.event === "onReady" || data.info?.playerState === 2 || data.info?.playerState === -1) {
-          playAudio();
+
+        if (data.event === "onReady") {
+          sendListening();
+          if (!isUserPausedRef.current && !isMapSilencedRef.current) {
+            sendYouTubeCommand("setVolume", [100]);
+            sendYouTubeCommand("unMute");
+            sendYouTubeCommand("playVideo");
+          }
+          return;
+        }
+
+        if (data.info && typeof data.info.playerState !== "undefined") {
+          const state = data.info.playerState;
+          if (state === 1) {
+            // Truly playing with sound
+            setIsPlaying(true);
+            isUserPausedRef.current = false;
+          } else if (state === 2 || state === 0) {
+            // Paused or ended
+            setIsPlaying(false);
+          }
         }
       } catch {
         /* ignore non-json messages */
@@ -354,7 +376,9 @@ export default function Navbar({ copy, lang, onToggleLang }) {
                 {copy.audio?.alertTitle || "Background Music"}
               </strong>
               <p className="audio-alert__desc">
-                {copy.audio?.alertDesc || "Click anywhere to play music. To pause, click the header button."}
+                {isPlaying
+                  ? (copy.audio?.alertDesc || "Wedding melody is playing. You can pause or play anytime using the header button.")
+                  : (copy.audio?.alertDescTap || "Tap anywhere or click Play to listen to the wedding melody.")}
               </p>
             </div>
             <div className="audio-alert__actions">
@@ -365,7 +389,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
                 aria-label={isPlaying ? (copy.audio?.pause || "Pause music") : (copy.audio?.play || "Play music")}
               >
                 <Icon name={isPlaying ? "pause" : "play"} size={13} />
-                <span>{isPlaying ? (copy.audio?.pauseBtn || "Pause") : (copy.audio?.play || "Play")}</span>
+                <span>{isPlaying ? (copy.audio?.pauseBtn || "Pause") : (copy.audio?.playBtn || "Play")}</span>
               </button>
               <button
                 type="button"
@@ -402,7 +426,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
           ref={iframeRef}
           width="200"
           height="200"
-          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&mute=1&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
+          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
           title="Wedding Background Music"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           onLoad={handleIframeLoad}
