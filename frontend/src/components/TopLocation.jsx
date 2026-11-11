@@ -64,7 +64,6 @@ export default function TopLocation({ copy }) {
       className="top-location"
       id="venue"
       aria-labelledby="top-location-title"
-      data-no-audio="true"
     >
       <div className="container top-location__inner">
         {/* Header Eyebrow with Traditional Gold Accents */}

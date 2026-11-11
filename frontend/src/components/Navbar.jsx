@@ -15,11 +15,10 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [showAlert, setShowAlert] = useState(true);
   const [alertFading, setAlertFading] = useState(false);
   const iframeRef = useRef(null);
-  const isMapSilencedRef = useRef(false);
   const isUserPausedRef = useRef(false);
 
   const sendYouTubeCommand = (func, args = []) => {
@@ -53,7 +52,6 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   };
 
   const playAudio = (force = false) => {
-    if (isMapSilencedRef.current && !force) return;
     if (isUserPausedRef.current && !force) return;
 
     sendListening();
@@ -68,13 +66,13 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     playAudio();
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 300);
+    }, 200);
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 800);
+    }, 600);
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 1800);
+    }, 1400);
   };
 
   const toggleAudio = (e) => {
@@ -87,7 +85,6 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     } else {
       // User explicitly clicked the button to resume music
       isUserPausedRef.current = false;
-      isMapSilencedRef.current = false;
       sendListening();
       sendYouTubeCommand("setVolume", [100]);
       sendYouTubeCommand("unMute");
@@ -104,16 +101,19 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     playAudio();
     const t1 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 250);
+    }, 150);
     const t2 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 650);
+    }, 450);
     const t3 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 1400);
+    }, 900);
     const t4 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 2800);
+    }, 1800);
+    const t5 = window.setTimeout(() => {
+      if (!isUserPausedRef.current) playAudio();
+    }, 3200);
 
     const onMessage = (event) => {
       try {
@@ -122,7 +122,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
 
         if (data.event === "onReady") {
           sendListening();
-          if (!isUserPausedRef.current && !isMapSilencedRef.current) {
+          if (!isUserPausedRef.current) {
             sendYouTubeCommand("setVolume", [100]);
             sendYouTubeCommand("unMute");
             sendYouTubeCommand("playVideo");
@@ -133,12 +133,13 @@ export default function Navbar({ copy, lang, onToggleLang }) {
         if (data.info && typeof data.info.playerState !== "undefined") {
           const state = data.info.playerState;
           if (state === 1) {
-            // Truly playing with sound
+            // Truly playing
             setIsPlaying(true);
-            isUserPausedRef.current = false;
           } else if (state === 2 || state === 0) {
-            // Paused or ended
-            setIsPlaying(false);
+            // Only flip to paused if user actually paused it
+            if (isUserPausedRef.current) {
+              setIsPlaying(false);
+            }
           }
         }
       } catch {
@@ -148,19 +149,16 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     window.addEventListener("message", onMessage);
 
     const onAnyGesture = (e) => {
-      // If user paused the music, never resume on click or touch anywhere
+      // If user deliberately paused the music, never resume on touch or click
       if (isUserPausedRef.current) return;
 
       const target = e?.target;
-      const isMapTarget =
+      const isMapAction =
         target &&
         typeof target.closest === "function" &&
-        target.closest(
-          "[data-no-audio], .top-location, .venue-map, .venue-map__link, .venue__actions a"
-        );
+        target.closest(".top-location__map, .top-location__btn-maps");
 
-      if (isMapTarget) {
-        isMapSilencedRef.current = true;
+      if (isMapAction) {
         sendYouTubeCommand("pauseVideo");
         setIsPlaying(false);
         return;
@@ -175,7 +173,6 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     window.addEventListener("keydown", onAnyGesture, { passive: true });
 
     const onSilence = () => {
-      isMapSilencedRef.current = true;
       sendYouTubeCommand("pauseVideo");
       setIsPlaying(false);
     };
@@ -186,6 +183,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       window.clearTimeout(t2);
       window.clearTimeout(t3);
       window.clearTimeout(t4);
+      window.clearTimeout(t5);
       window.removeEventListener("message", onMessage);
       window.removeEventListener("pointerdown", onAnyGesture);
       window.removeEventListener("touchstart", onAnyGesture);
