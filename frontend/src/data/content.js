@@ -134,7 +134,7 @@ export const content = {
       note: "Muhurtham 10:00 – 10:45 am · lunch thereafter",
     },
     topLocation: {
-      badge: "Scan Location · Wedding Venue",
+      badge: "For Wedding venue · Click Below",
       kicker: "Join us at",
       title: "Hilton Convention Center",
       city: "Manjeri, Kerala",
@@ -367,7 +367,7 @@ export const content = {
       note: "മുഹൂർത്തം രാവിലെ 10:00 – 10:45 · തുടർന്ന് ഉച്ചഭക്ഷണം",
     },
     topLocation: {
-      badge: "വേദി ലൊക്കേഷൻ · സ്കാൻ വഴി എത്തിച്ചേരാം",
+      badge: "വേദി ലൊക്കേഷൻ ലഭിക്കാൻ · താഴെയുള്ള ലിങ്കിൽ ക്ലിക്ക് ചെയ്യുക",
       kicker: "ഇവിടെ ഒത്തുചേരാം",
       title: "ഹിൽട്ടൺ കൺവെൻഷൻ സെന്റർ",
       city: "മഞ്ചേരി, കേരളം",

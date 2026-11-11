@@ -230,9 +230,11 @@
 .audio-toggle__bars .bar--1 {
   height: 5px;
 }
+
 .audio-toggle__bars .bar--2 {
   height: 11px;
 }
+
 .audio-toggle__bars .bar--3 {
   height: 7px;
 }
@@ -240,24 +242,43 @@
 .audio-toggle.is-playing .audio-toggle__bars .bar--1 {
   animation: audio-eq-1 0.75s ease-in-out infinite alternate;
 }
+
 .audio-toggle.is-playing .audio-toggle__bars .bar--2 {
   animation: audio-eq-2 0.55s ease-in-out infinite alternate 0.12s;
 }
+
 .audio-toggle.is-playing .audio-toggle__bars .bar--3 {
   animation: audio-eq-3 0.85s ease-in-out infinite alternate 0.24s;
 }
 
 @keyframes audio-eq-1 {
-  0% { height: 3px; }
-  100% { height: 11px; }
+  0% {
+    height: 3px;
+  }
+
+  100% {
+    height: 11px;
+  }
 }
+
 @keyframes audio-eq-2 {
-  0% { height: 12px; }
-  100% { height: 4px; }
+  0% {
+    height: 12px;
+  }
+
+  100% {
+    height: 4px;
+  }
 }
+
 @keyframes audio-eq-3 {
-  0% { height: 4px; }
-  100% { height: 10px; }
+  0% {
+    height: 4px;
+  }
+
+  100% {
+    height: 10px;
+  }
 }
 
 .audio-toggle.is-paused .audio-toggle__bars .bar {
@@ -297,6 +318,7 @@
     opacity: 0;
     transform: translateY(-16px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -324,10 +346,13 @@
 }
 
 @keyframes audio-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(181, 138, 74, 0.35);
   }
+
   50% {
     transform: scale(1.05);
     box-shadow: 0 0 0 5px rgba(181, 138, 74, 0);
@@ -418,6 +443,7 @@
   from {
     transform: scaleX(1);
   }
+
   to {
     transform: scaleX(0);
   }
@@ -500,6 +526,7 @@
   z-index: 110;
   display: flex;
   align-items: stretch;
+  overflow: hidden;
   visibility: hidden;
   opacity: 0;
   transform: translateY(-3%);
@@ -717,6 +744,7 @@
   from {
     transform: rotate(-1.3deg);
   }
+
   to {
     transform: rotate(1.3deg);
   }
@@ -1141,12 +1169,15 @@
     transform: translateY(0);
     opacity: 0;
   }
+
   25% {
     opacity: 1;
   }
+
   75% {
     opacity: 1;
   }
+
   100% {
     transform: translateY(360%);
     opacity: 0;
@@ -1659,7 +1690,8 @@
     top: 64px;
     left: 12px;
     right: 12px;
-    max-width: none;
+    max-width: calc(100vw - 24px);
+    width: auto;
   }
 
   .audio-alert__content {
@@ -1711,6 +1743,60 @@
 
   .footer__names {
     font-size: 2rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .hero__name {
+    font-size: clamp(2.4rem, 14vw, 3.8rem);
+  }
+
+  .site-nav__inner {
+    gap: 0.4rem;
+  }
+
+  .site-nav__actions {
+    gap: 0.35rem;
+  }
+
+  .brand {
+    gap: 0.45rem;
+  }
+
+  .brand__seal {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand__text strong {
+    font-size: 0.74rem;
+  }
+
+  .lang-toggle {
+    padding: 0.35rem 0.52rem;
+    font-size: 0.62rem;
+  }
+
+  .audio-toggle {
+    padding: 0.35rem 0.52rem;
+    font-size: 0.62rem;
+  }
+
+  .menu-toggle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .hero__corner {
+    width: 36px;
+  }
+
+  .hero__frame {
+    inset: 6px;
+  }
+
+  .hero__palm {
+    display: none;
   }
 }
 
@@ -1773,7 +1859,9 @@
 [data-lang="ml"] .countdown__label {
   letter-spacing: 0.02em;
   text-transform: none;
-  font-size: 0.6rem;
+  font-size: clamp(0.44rem, 1.8vw, 0.6rem);
+  word-break: break-word;
+  text-align: center;
 }
 
 [data-lang="ml"] .date-card__note {
@@ -1802,7 +1890,8 @@
 
 @media (max-width: 760px) {
   [data-lang="ml"] .hero__name {
-    font-size: clamp(2.9rem, 12.5vw, 4.4rem);
+    font-size: clamp(2.1rem, 11vw, 4.4rem);
     line-height: 1.25;
+    word-break: break-word;
   }
 }

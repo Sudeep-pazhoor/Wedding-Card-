@@ -28,7 +28,7 @@ async function copyText(text) {
 export default function TopLocation({ copy }) {
   const [copied, setCopied] = useState(false);
   const t = copy.topLocation || {
-    badge: "Scan Location · Wedding Venue",
+    badge: "For Wedding venue · Click Here",
     kicker: "Join us at",
     title: "Hilton Convention Center",
     address: "Vettekode Road, Vayapparappadi, Manjeri, Malappuram District, Kerala",
@@ -159,9 +159,6 @@ export default function TopLocation({ copy }) {
             <span className="venue-map__label">
               <strong>{v.mapLabel}</strong>
               <small>{v.mapCaption}</small>
-            </span>
-            <span className="venue-map__link" aria-hidden="true">
-              <Icon name="external" size={16} />
             </span>
           </a>
 
