@@ -21,7 +21,6 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   const iframeRef = useRef(null);
   const isMapSilencedRef = useRef(false);
   const isUserPausedRef = useRef(false);
-  const gestureCleanedRef = useRef(false);
 
   const sendYouTubeCommand = (func, args = []) => {
     try {
@@ -40,11 +39,24 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     }
   };
 
+  const sendListening = () => {
+    try {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "listening" }),
+          "*"
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   const playAudio = (force = false) => {
     if (isMapSilencedRef.current && !force) return;
     if (isUserPausedRef.current && !force) return;
 
-    sendYouTubeCommand("listening");
+    sendListening();
     sendYouTubeCommand("setVolume", [100]);
     sendYouTubeCommand("unMute");
     sendYouTubeCommand("playVideo");
@@ -53,16 +65,17 @@ export default function Navbar({ copy, lang, onToggleLang }) {
 
   const handleIframeLoad = () => {
     if (isUserPausedRef.current) return;
+    sendListening();
     playAudio();
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
     }, 300);
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 900);
+    }, 800);
     window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 2000);
+    }, 1800);
   };
 
   const toggleAudio = (e) => {
@@ -112,21 +125,9 @@ export default function Navbar({ copy, lang, onToggleLang }) {
     };
     window.addEventListener("message", onMessage);
 
-    const removeGestureListeners = () => {
-      if (gestureCleanedRef.current) return;
-      gestureCleanedRef.current = true;
-      window.removeEventListener("pointerdown", onAnyGesture);
-      window.removeEventListener("touchstart", onAnyGesture);
-      window.removeEventListener("scroll", onAnyGesture);
-      window.removeEventListener("keydown", onAnyGesture);
-    };
-
     const onAnyGesture = (e) => {
-      // If user paused the music, never resume on scroll/click
-      if (isUserPausedRef.current) {
-        removeGestureListeners();
-        return;
-      }
+      // If user paused the music, never resume on click or touch anywhere
+      if (isUserPausedRef.current) return;
 
       const target = e?.target;
       const isMapTarget =
@@ -144,12 +145,11 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       }
 
       playAudio();
-      removeGestureListeners();
     };
 
     window.addEventListener("pointerdown", onAnyGesture, { passive: true });
     window.addEventListener("touchstart", onAnyGesture, { passive: true });
-    window.addEventListener("scroll", onAnyGesture, { passive: true });
+    window.addEventListener("click", onAnyGesture, { passive: true });
     window.addEventListener("keydown", onAnyGesture, { passive: true });
 
     const onSilence = () => {
@@ -165,7 +165,10 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       window.clearTimeout(t3);
       window.clearTimeout(t4);
       window.removeEventListener("message", onMessage);
-      removeGestureListeners();
+      window.removeEventListener("pointerdown", onAnyGesture);
+      window.removeEventListener("touchstart", onAnyGesture);
+      window.removeEventListener("click", onAnyGesture);
+      window.removeEventListener("keydown", onAnyGesture);
       window.removeEventListener("sn:silence-music", onSilence);
     };
   }, []);
@@ -379,17 +382,17 @@ export default function Navbar({ copy, lang, onToggleLang }) {
         </aside>
       )}
 
-      {/* Hidden YouTube background audio iframe */}
+      {/* Background YouTube audio player: in-viewport with standard dimensions so browsers do not throttle or power-save it */}
       <div
         className="audio-player-host"
         aria-hidden="true"
         style={{
           position: "fixed",
-          width: "1px",
-          height: "1px",
-          left: "-9999px",
-          top: "-9999px",
-          opacity: 0,
+          bottom: 0,
+          right: 0,
+          width: "200px",
+          height: "200px",
+          opacity: 0.001,
           pointerEvents: "none",
           overflow: "hidden",
           zIndex: -1,
@@ -399,7 +402,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
           ref={iframeRef}
           width="200"
           height="200"
-          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&mute=0&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
+          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&mute=1&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
           title="Wedding Background Music"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           onLoad={handleIframeLoad}
