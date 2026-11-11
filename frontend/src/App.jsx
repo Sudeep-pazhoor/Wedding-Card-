@@ -8,6 +8,7 @@ import Hero from "./components/Hero";
 import Invitation from "./components/Invitation";
 import Navbar from "./components/Navbar";
 import ScrollProgress from "./components/ScrollProgress";
+import TopLocation from "./components/TopLocation";
 import Venue from "./components/Venue";
 import { content } from "./data/content";
 import {
@@ -99,7 +100,7 @@ export default function App() {
   }, [lang]);
 
   return (
-    <div className="app" data-lang={lang}>
+    <div className="app" id="top" data-lang={lang}>
       <a className="skip-link" href="#invitation">
         {lang === "ml" ? "ക്ഷണത്തിലേക്ക് പോകുക" : "Skip to invitation"}
       </a>
@@ -112,6 +113,7 @@ export default function App() {
       />
 
       <main id="main">
+        <TopLocation copy={copy} lang={lang} />
         <Hero copy={copy} />
         <Countdown copy={copy} />
         <Invitation copy={copy} />

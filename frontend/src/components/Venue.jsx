@@ -32,6 +32,11 @@ export default function Venue({ copy }) {
   const [qrStep, setQrStep] = useState(0);
   const [copied, setCopied] = useState(false);
 
+  const handleMapAction = (e) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent("sn:silence-music"));
+  };
+
   const fullAddress = [v.title, ...v.addressLines].join(", ");
 
   const handleCopy = async () => {
@@ -98,6 +103,8 @@ export default function Venue({ copy }) {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={v.openMaps}
+                data-no-audio="true"
+                onClick={handleMapAction}
               >
                 <Icon name="external" size={16} />
               </a>
@@ -117,7 +124,14 @@ export default function Venue({ copy }) {
               </div>
 
               <div className="venue__actions">
-                <a className="btn btn--maroon" href={SITE.mapsUrl} target="_blank" rel="noreferrer">
+                <a
+                  className="btn btn--maroon"
+                  href={SITE.mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-no-audio="true"
+                  onClick={handleMapAction}
+                >
                   <Icon name="mapPin" size={17} />
                   {v.openMaps}
                 </a>
@@ -169,7 +183,7 @@ export default function Venue({ copy }) {
               </div>
               <a className="travel-card__call" href={`tel:+91${SITE.phones[0]}`}>
                 <Icon name="phone" size={16} />
-                +91 96333 94120
+                +91 8281829839
               </a>
             </div>
           </aside>

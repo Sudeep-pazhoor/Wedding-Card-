@@ -72,7 +72,7 @@ export default function Hero({ copy }) {
   }, []);
 
   return (
-    <section className="hero" id="top" ref={heroRef} aria-labelledby="hero-title">
+    <section className="hero" id="hero" ref={heroRef} aria-labelledby="hero-title">
       <div className="hero__bg" aria-hidden="true">
         <div className="hero__wash" />
         <img

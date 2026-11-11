@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createBlessing, fetchBlessings } from "../lib/api";
+import { fetchBlessings } from "../lib/api";
 import { prefersReducedMotion } from "../lib/scroll";
 import { Icon } from "./Icon";
-import { OmCircle, SectionHeading } from "./Ornaments";
-
-const NAME_LIMIT = 40;
-const MESSAGE_LIMIT = 240;
-const MARQUEE_LIMIT = 16;
+import { SectionHeading } from "./Ornaments";
 
 function initials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,20 +12,30 @@ function initials(name = "") {
 }
 
 function formatDate(iso, lang) {
+  if (!iso) return "";
   try {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "";
     return new Intl.DateTimeFormat(lang === "ml" ? "ml-IN" : "en-GB", {
       day: "numeric",
       month: "short",
-    }).format(new Date(iso));
+    }).format(date);
   } catch {
     return "";
   }
 }
 
 function BlessingCard({ item, copy, lang }) {
-  const option = copy.blessings.attendingOptions.find(
+  const option = copy.blessings.attendingOptions?.find(
     (choice) => choice.value === item.attending
   );
+  const roleLabel =
+    option?.label ||
+    (item.attending === "blessings"
+      ? (lang === "ml" ? "മനസ്സിൽ ഒപ്പം" : "Joining in spirit")
+      : (lang === "ml" ? "സ്നേഹാശംസകൾ" : "Warm wishes"));
+
+  const dateStr = item.createdAt ? formatDate(item.createdAt, lang) : "";
 
   return (
     <article className="blessing-card">
@@ -46,8 +52,8 @@ function BlessingCard({ item, copy, lang }) {
         <span className="blessing-card__by">
           <strong>{item.name}</strong>
           <small>
-            {option?.label || "Blessings"}
-            {item.createdAt && ` · ${formatDate(item.createdAt, lang)}`}
+            {roleLabel}
+            {dateStr && ` · ${dateStr}`}
           </small>
         </span>
         <Icon name="heart" size={15} className="blessing-card__heart" />
@@ -76,7 +82,8 @@ function MarqueeRow({
   const animIdRef = useRef(null);
   const singleWRef = useRef(0);
 
-  // Ensure each group has enough items to fill even wide viewports smoothly
+  // When singleTrack is true (few cards), keep exact list without duplication.
+  // When multi-row, ensure each group fills wide viewports.
   const displayItems = useMemo(() => {
     if (!items || items.length === 0) return [];
     if (singleTrack) return items;
@@ -194,7 +201,7 @@ function MarqueeRow({
 
   // Mouse drag handling
   const handlePointerDown = (e) => {
-    if (e.pointerType === "touch") return; // Touch is handled by touch listeners
+    if (e.pointerType === "touch") return;
     if (e.button !== undefined && e.button !== 0) return;
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -291,22 +298,14 @@ function MarqueeRow({
 
 export default function Blessings({ copy, lang }) {
   const [messages, setMessages] = useState([]);
-  const [form, setForm] = useState({
-    name: "",
-    message: "",
-    attending: copy.blessings.attendingOptions[0].value,
-  });
-  const [honeypot, setHoneypot] = useState("");
-  const [sending, setSending] = useState(false);
-  const [status, setStatus] = useState(null);
-  const [fieldError, setFieldError] = useState("");
-  const formRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     fetchBlessings().then((result) => {
       if (!active) return;
       setMessages(result.messages);
+      setLoading(false);
     });
     return () => {
       active = false;
@@ -318,62 +317,9 @@ export default function Blessings({ copy, lang }) {
   const isMultiRow = messages.length >= 4;
   const isSingleTrack = messages.length < 4;
 
-  const wallItems = useMemo(() => {
-    return messages.slice(0, MARQUEE_LIMIT);
-  }, [messages]);
-
-  const split = Math.ceil(wallItems.length / 2);
-  const rowOne = isMultiRow ? wallItems.slice(0, split) : wallItems;
-  const rowTwo = isMultiRow ? wallItems.slice(split) : [];
-
-  const update = (field) => (event) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
-    if (fieldError) setFieldError("");
-    if (status?.type === "error") setStatus(null);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (honeypot) return;
-
-    const name = form.name.trim();
-    const message = form.message.trim();
-
-    if (name.length < 2 || message.length < 2) {
-      setFieldError(copy.blessings.validation);
-      return;
-    }
-
-    setSending(true);
-    setFieldError("");
-    setStatus(null);
-
-    try {
-      const result = await createBlessing({
-        name,
-        message,
-        attending: form.attending,
-        website: honeypot,
-      });
-
-      setMessages((current) => {
-        const rest = current.filter((item) => item._id !== result.message._id);
-        return [result.message, ...rest];
-      });
-      setForm((current) => ({ ...current, message: "" }));
-      setStatus({
-        type: "success",
-        text: copy.blessings.success,
-      });
-    } catch (error) {
-      setStatus({
-        type: "error",
-        text: error?.message || copy.blessings.error,
-      });
-    } finally {
-      setSending(false);
-    }
-  };
+  const split = Math.ceil(messages.length / 2);
+  const rowOne = isMultiRow ? messages.slice(0, split) : messages;
+  const rowTwo = isMultiRow ? messages.slice(split) : [];
 
   return (
     <section className="section blessings" id="blessings" aria-labelledby="blessings-title">
@@ -386,129 +332,16 @@ export default function Blessings({ copy, lang }) {
           id="blessings-title"
         />
 
-        <form className="blessing-form" onSubmit={handleSubmit} ref={formRef} data-reveal noValidate>
-          <div className="blessing-form__ornament" aria-hidden="true">
-            <OmCircle tone="pale" />
-          </div>
-
-          <div className="blessing-form__head">
-            <h3>{copy.blessings.formTitle}</h3>
-            <p>{copy.blessings.formNote}</p>
-          </div>
-
-          <div className="blessing-form__row">
-            <label className="field">
-              <span className="field__label">
-                {copy.blessings.nameLabel}
-                <span className="field__required">{copy.blessings.required}</span>
-              </span>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={update("name")}
-                placeholder={copy.blessings.namePlaceholder}
-                maxLength={NAME_LIMIT}
-                autoComplete="name"
-                required
-                aria-invalid={Boolean(fieldError)}
-              />
-              <span className="field__count">
-                {copy.blessings.charCount(form.name.length, NAME_LIMIT)}
-              </span>
-            </label>
-          </div>
-
-          <fieldset className="field field--choice">
-            <legend className="field__label">{copy.blessings.attendingLabel}</legend>
-            <div className="choice-row">
-              {copy.blessings.attendingOptions.map((option) => (
-                <label className={`choice ${form.attending === option.value ? "is-selected" : ""}`} key={option.value}>
-                  <input
-                    type="radio"
-                    name="attending"
-                    value={option.value}
-                    checked={form.attending === option.value}
-                    onChange={update("attending")}
-                  />
-                  <Icon name={option.value === "attending" ? "heart" : "sparkle"} size={15} />
-                  <span>{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="field">
-            <span className="field__label">
-              {copy.blessings.messageLabel}
-              <span className="field__required">{copy.blessings.required}</span>
-            </span>
-            <textarea
-              name="message"
-              rows={4}
-              value={form.message}
-              onChange={update("message")}
-              placeholder={copy.blessings.messagePlaceholder}
-              maxLength={MESSAGE_LIMIT}
-              required
-              aria-invalid={Boolean(fieldError)}
-            />
-            <span className="field__count">
-              {copy.blessings.charCount(form.message.length, MESSAGE_LIMIT)}
-            </span>
-          </label>
-
-          <label className="hp-field" aria-hidden="true">
-            Website
-            <input
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-              value={honeypot}
-              onChange={(event) => setHoneypot(event.target.value)}
-            />
-          </label>
-
-          <div className="blessing-form__footer">
-            <button type="submit" className="btn btn--maroon" disabled={sending}>
-              {sending ? copy.blessings.sending : copy.blessings.submit}
-              <Icon name={sending ? "sparkle" : "send"} size={17} />
-            </button>
-            {status && (
-              <p
-                className={`form-status form-status--${status.type}`}
-                role="status"
-                aria-live="polite"
-              >
-                <Icon name={status.type === "success" ? "check" : "sparkle"} size={16} />
-                {status.text}
-              </p>
-            )}
-            {fieldError && (
-              <p className="form-status form-status--error" role="alert">
-                {fieldError}
-              </p>
-            )}
-          </div>
-        </form>
-      </div>
-
-      <div className="blessings__wall">
-        <div className="container blessings__wall-head">
-          <div>
-            <p className="eyebrow">
-              <span className="eyebrow__line" aria-hidden="true" />
-              {copy.blessings.wallKicker}
-            </p>
-            <h3>{copy.blessings.wallTitle}</h3>
-            <p>{copy.blessings.wallSub}</p>
-          </div>
+        <div className="blessings__meta-bar" data-reveal>
           <span className="blessings__count">
             <Icon name="heart" size={15} />
             {messages.length ? copy.blessings.count(messages.length) : copy.blessings.emptyCount}
           </span>
+          <p className="blessings__hint">{copy.blessings.wallSub}</p>
         </div>
+      </div>
 
+      <div className="blessings__wall">
         {messages.length > 0 ? (
           <>
             <MarqueeRow
@@ -534,7 +367,9 @@ export default function Blessings({ copy, lang }) {
               <div className="blessings__empty-icon" aria-hidden="true">
                 <Icon name="heart" size={22} />
               </div>
-              <p className="blessings__empty-text">{copy.blessings.emptyNote}</p>
+              <p className="blessings__empty-text">
+                {loading ? "Loading blessings…" : copy.blessings.emptyNote}
+              </p>
               <p className="blessings__empty-hint">{copy.blessings.emptyHint}</p>
             </div>
           </div>

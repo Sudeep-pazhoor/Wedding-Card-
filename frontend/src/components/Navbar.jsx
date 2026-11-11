@@ -19,6 +19,8 @@ export default function Navbar({ copy, lang, onToggleLang }) {
   const [showAlert, setShowAlert] = useState(true);
   const [alertFading, setAlertFading] = useState(false);
   const iframeRef = useRef(null);
+  const isMapSilencedRef = useRef(false);
+  const interactionTriggeredRef = useRef(false);
 
   const sendYouTubeCommand = (func, args = []) => {
     try {
@@ -39,6 +41,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
 
   const handleIframeLoad = () => {
     const play = () => {
+      if (isMapSilencedRef.current) return;
       sendYouTubeCommand("listening");
       sendYouTubeCommand("setVolume", [100]);
       sendYouTubeCommand("unMute");
@@ -54,6 +57,7 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       sendYouTubeCommand("pauseVideo");
       setIsPlaying(false);
     } else {
+      isMapSilencedRef.current = false;
       sendYouTubeCommand("unMute");
       sendYouTubeCommand("playVideo");
       setIsPlaying(true);
@@ -62,25 +66,59 @@ export default function Navbar({ copy, lang, onToggleLang }) {
 
   // Browser Autoplay Policy: if unmuted audio is blocked until user interaction,
   // ensure the first touch, click, scroll or keypress un-mutes and plays.
+  // HOWEVER: if the user clicks the location map or "click here" to view the map,
+  // NO song is played, and music is explicitly silenced.
   useEffect(() => {
-    const onFirstInteraction = () => {
+    const onFirstInteraction = (e) => {
+      if (interactionTriggeredRef.current) return;
+
+      const target = e?.target;
+      const isMapTarget =
+        target &&
+        typeof target.closest === "function" &&
+        target.closest(
+          "[data-no-audio], .top-location, .venue-map, .venue-map__link, .venue__actions a"
+        );
+
+      if (isMapTarget) {
+        // User clicked the map or location directions: strictly prevent music
+        isMapSilencedRef.current = true;
+        sendYouTubeCommand("pauseVideo");
+        setIsPlaying(false);
+        return;
+      }
+
+      interactionTriggeredRef.current = true;
       sendYouTubeCommand("unMute");
       sendYouTubeCommand("playVideo");
+      setIsPlaying(true);
+      removeListeners();
     };
 
-    const opts = { capture: true, passive: true, once: true };
-    window.addEventListener("pointerdown", onFirstInteraction, opts);
-    window.addEventListener("touchstart", onFirstInteraction, opts);
-    window.addEventListener("click", onFirstInteraction, opts);
-    window.addEventListener("keydown", onFirstInteraction, opts);
-    window.addEventListener("scroll", onFirstInteraction, opts);
+    const removeListeners = () => {
+      window.removeEventListener("pointerdown", onFirstInteraction, true);
+      window.removeEventListener("touchstart", onFirstInteraction, true);
+      window.removeEventListener("click", onFirstInteraction, true);
+      window.removeEventListener("keydown", onFirstInteraction, true);
+      window.removeEventListener("scroll", onFirstInteraction, true);
+    };
+
+    window.addEventListener("pointerdown", onFirstInteraction, true);
+    window.addEventListener("touchstart", onFirstInteraction, true);
+    window.addEventListener("click", onFirstInteraction, true);
+    window.addEventListener("keydown", onFirstInteraction, true);
+    window.addEventListener("scroll", onFirstInteraction, true);
+
+    const onSilence = () => {
+      isMapSilencedRef.current = true;
+      sendYouTubeCommand("pauseVideo");
+      setIsPlaying(false);
+    };
+    window.addEventListener("sn:silence-music", onSilence);
 
     return () => {
-      window.removeEventListener("pointerdown", onFirstInteraction, opts);
-      window.removeEventListener("touchstart", onFirstInteraction, opts);
-      window.removeEventListener("click", onFirstInteraction, opts);
-      window.removeEventListener("keydown", onFirstInteraction, opts);
-      window.removeEventListener("scroll", onFirstInteraction, opts);
+      removeListeners();
+      window.removeEventListener("sn:silence-music", onSilence);
     };
   }, []);
 
