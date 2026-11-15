@@ -2,7 +2,7 @@
 
 A bilingual (English / Malayalam) wedding invitation and blessing wall for
 **Sundeep & Neeraja**, celebrating on **Sunday, 24 January 2027** at
-**Hilton Convention Center, Manjeri, Kerala**.
+**Hillton Convention Centre, Manjeri, Kerala**.
 
 The repository is structured with completely separated **`frontend/`** and **`backend/`** folders, designed for independent deployment:
 - **Backend on Render**: Express 5 + MongoDB Atlas API with root directory set to `backend/`.

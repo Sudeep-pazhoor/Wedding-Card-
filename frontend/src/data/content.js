@@ -8,7 +8,7 @@ export const SITE = {
   bride: "Neeraja",
   weddingDateISO: "2027-01-24T10:00:00+05:30",
   venueQuery:
-    "Hilton Convention Center, Vettekode Road, Vayapparappadi, Manjeri, Malappuram, Kerala",
+    "Hillton Convention Centre, Vettekode Road, Vayapparappadi, Manjeri, Malappuram, Kerala",
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Hilton+Convention+Center%2C+Vettekode+Road%2C+Vayapparappadi%2C+Manjeri%2C+Malappuram%2C+Kerala",
   phones: ["8281829839"],
@@ -54,7 +54,7 @@ export const content = {
       with: "with",
       bride: "Neeraja",
       date: "Sunday · 24 January 2027",
-      place: "Hilton Convention Center · Manjeri",
+      place: "Hillton Convention Centree · Manjeri",
       primaryCta: "View blessings",
       secondaryCta: "View invitation",
       scroll: "Scroll to unfold",
@@ -103,7 +103,7 @@ export const content = {
       venueSmall: "The venue",
       dateLabel: "Sunday, 24 January 2027",
       muhurthamLabel: "Muhurtham · 10:00 – 10:45 am",
-      venueLabel: "Hilton Convention Center, Manjeri",
+      venueLabel: "Hillton Convention Centree, Manjeri",
       malayalamDate: "1202 Makaram 10",
     },
     celebration: {
@@ -138,7 +138,7 @@ export const content = {
     topLocation: {
       badge: "For Wedding venue · Click Below",
       kicker: "Join us at",
-      title: "Hilton Convention Center",
+      title: "Hillton Convention Centre",
       city: "Manjeri, Kerala",
       address: "Vettekode Road, Vayapparappadi, Manjeri, Malappuram District, Kerala",
       dateTime: "Sunday, 24 January 2027 · Muhurtham 10:00 – 10:45 am",
@@ -151,7 +151,7 @@ export const content = {
     },
     venue: {
       kicker: "Join us at",
-      title: "Hilton Convention Center",
+      title: "Hillton Convention Centre",
       addressLines: [
         "Vettekode Road, Vayapparappadi",
         "Manjeri, Malappuram District",
