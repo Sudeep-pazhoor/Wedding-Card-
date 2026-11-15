@@ -11,170 +11,162 @@ const links = [
   { id: "blessings", key: "blessings" },
 ];
 
+const DRIVE_AUDIO_URL =
+  "https://drive.usercontent.google.com/download?id=1lcojotj6w265Ryu3u7dHA7GHMAdo08DC&export=download";
+const DRIVE_AUDIO_FALLBACK =
+  "https://drive.google.com/uc?export=download&id=1lcojotj6w265Ryu3u7dHA7GHMAdo08DC";
+
 export default function Navbar({ copy, lang, onToggleLang }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [active, setActive] = useState("");
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
   const [alertFading, setAlertFading] = useState(false);
-  const iframeRef = useRef(null);
+  const audioRef = useRef(null);
   const isUserPausedRef = useRef(false);
-
-  const sendYouTubeCommand = (func, args = []) => {
-    try {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({
-            event: "command",
-            func,
-            args,
-          }),
-          "*"
-        );
-      }
-    } catch {
-      /* ignore cross-origin errors */
-    }
-  };
-
-  const sendListening = () => {
-    try {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: "listening" }),
-          "*"
-        );
-      }
-    } catch {
-      /* ignore */
-    }
-  };
 
   const playAudio = (force = false) => {
     if (isUserPausedRef.current && !force) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    sendListening();
-    sendYouTubeCommand("setVolume", [100]);
-    sendYouTubeCommand("unMute");
-    sendYouTubeCommand("playVideo");
-  };
-
-  const handleIframeLoad = () => {
-    if (isUserPausedRef.current) return;
-    sendListening();
-    playAudio();
-    window.setTimeout(() => {
-      if (!isUserPausedRef.current) playAudio();
-    }, 200);
-    window.setTimeout(() => {
-      if (!isUserPausedRef.current) playAudio();
-    }, 600);
-    window.setTimeout(() => {
-      if (!isUserPausedRef.current) playAudio();
-    }, 1400);
-  };
-
-  const toggleAudio = (e) => {
-    if (e) e.stopPropagation();
-    if (isPlaying) {
-      // User paused: mark paused so scroll or click anywhere will NEVER play music
-      isUserPausedRef.current = true;
-      sendYouTubeCommand("pauseVideo");
-      setIsPlaying(false);
-    } else {
-      // User explicitly clicked the button to resume music
-      isUserPausedRef.current = false;
-      sendListening();
-      sendYouTubeCommand("setVolume", [100]);
-      sendYouTubeCommand("unMute");
-      sendYouTubeCommand("playVideo");
-      setIsPlaying(true);
+    try {
+      audio.volume = 1;
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(() => {
+            // Autoplay policy awaiting user activation
+            setIsPlaying(false);
+          });
+      }
+    } catch {
+      /* ignore sync error */
     }
   };
 
-  // Autoplay on load/refresh: triggers immediately on mount and retries to catch iframe readiness.
-  // Also listens to YouTube postMessage events, and as a fallback attaches passive page listeners
-  // so an early gesture un-mutes if blocked by browser autoplay policy.
+  const pauseAudio = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      try {
+        audio.pause();
+      } catch {
+        /* ignore */
+      }
+    }
+    setIsPlaying(false);
+  };
+
+  const toggleAudio = (e) => {
+    if (e) {
+      if (typeof e.preventDefault === "function") e.preventDefault();
+      if (typeof e.stopPropagation === "function") e.stopPropagation();
+    }
+    if (isPlaying) {
+      // User paused: mark paused so scroll or click anywhere will NEVER play music
+      isUserPausedRef.current = true;
+      pauseAudio();
+    } else {
+      // User explicitly clicked the button to resume music
+      isUserPausedRef.current = false;
+      playAudio(true);
+    }
+  };
+
+  // Autoplay on load/restart: triggers immediately on mount and on early gestures.
+  // Plays smoothly on all devices (desktop and mobile) from same-origin optimized audio.
   // CRITICAL: Once user pauses the music, it will ONLY turn on when the user presses the button itself.
   useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 1;
+    }
+
+    // Attempt autoplay immediately
     playAudio();
+
+    // Additional retries shortly after mount (for environments permitting delayed playback)
     const t1 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
     }, 150);
     const t2 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 450);
+    }, 500);
     const t3 = window.setTimeout(() => {
       if (!isUserPausedRef.current) playAudio();
-    }, 900);
-    const t4 = window.setTimeout(() => {
-      if (!isUserPausedRef.current) playAudio();
-    }, 1800);
-    const t5 = window.setTimeout(() => {
-      if (!isUserPausedRef.current) playAudio();
-    }, 3200);
+    }, 1200);
 
-    const onMessage = (event) => {
-      try {
-        if (!event.data) return;
-        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-
-        if (data.event === "onReady") {
-          sendListening();
-          if (!isUserPausedRef.current) {
-            sendYouTubeCommand("setVolume", [100]);
-            sendYouTubeCommand("unMute");
-            sendYouTubeCommand("playVideo");
-          }
-          return;
-        }
-
-        if (data.info && typeof data.info.playerState !== "undefined") {
-          const state = data.info.playerState;
-          if (state === 1) {
-            // Truly playing
-            setIsPlaying(true);
-          } else if (state === 2 || state === 0) {
-            // Only flip to paused if user actually paused it
-            if (isUserPausedRef.current) {
-              setIsPlaying(false);
-            }
-          }
-        }
-      } catch {
-        /* ignore non-json messages */
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => {
+      if (audio && audio.paused) {
+        setIsPlaying(false);
       }
     };
-    window.addEventListener("message", onMessage);
+    const onEnded = () => {
+      if (audio && !isUserPausedRef.current) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    };
+    const onError = (e) => {
+      console.warn("Audio element error encountered:", e);
+      setIsPlaying(false);
+    };
+
+    if (audio) {
+      audio.addEventListener("playing", onPlay);
+      audio.addEventListener("play", onPlay);
+      audio.addEventListener("pause", onPause);
+      audio.addEventListener("ended", onEnded);
+      audio.addEventListener("error", onError);
+    }
 
     const onAnyGesture = (e) => {
       // If user deliberately paused the music, never resume on touch or click
       if (isUserPausedRef.current) return;
 
       const target = e?.target;
+      // Do not trigger from clicks on toggle buttons or close buttons
+      if (
+        target &&
+        typeof target.closest === "function" &&
+        target.closest(".audio-toggle, .audio-alert__btn-toggle, .audio-alert__btn-close")
+      ) {
+        return;
+      }
+
       const isMapAction =
         target &&
         typeof target.closest === "function" &&
         target.closest(".top-location__map, .top-location__btn-maps");
 
       if (isMapAction) {
-        sendYouTubeCommand("pauseVideo");
-        setIsPlaying(false);
+        pauseAudio();
         return;
       }
 
       playAudio();
     };
 
-    window.addEventListener("pointerdown", onAnyGesture, { passive: true });
-    window.addEventListener("touchstart", onAnyGesture, { passive: true });
-    window.addEventListener("click", onAnyGesture, { passive: true });
-    window.addEventListener("keydown", onAnyGesture, { passive: true });
+    const gestureEvents = [
+      "pointerdown",
+      "touchstart",
+      "touchend",
+      "click",
+      "keydown",
+      "scroll",
+    ];
+
+    gestureEvents.forEach((evt) => {
+      window.addEventListener(evt, onAnyGesture, { passive: true, capture: true });
+    });
 
     const onSilence = () => {
-      sendYouTubeCommand("pauseVideo");
-      setIsPlaying(false);
+      pauseAudio();
     };
     window.addEventListener("sn:silence-music", onSilence);
 
@@ -182,13 +174,16 @@ export default function Navbar({ copy, lang, onToggleLang }) {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
       window.clearTimeout(t3);
-      window.clearTimeout(t4);
-      window.clearTimeout(t5);
-      window.removeEventListener("message", onMessage);
-      window.removeEventListener("pointerdown", onAnyGesture);
-      window.removeEventListener("touchstart", onAnyGesture);
-      window.removeEventListener("click", onAnyGesture);
-      window.removeEventListener("keydown", onAnyGesture);
+      if (audio) {
+        audio.removeEventListener("playing", onPlay);
+        audio.removeEventListener("play", onPlay);
+        audio.removeEventListener("pause", onPause);
+        audio.removeEventListener("ended", onEnded);
+        audio.removeEventListener("error", onError);
+      }
+      gestureEvents.forEach((evt) => {
+        window.removeEventListener(evt, onAnyGesture, { capture: true });
+      });
       window.removeEventListener("sn:silence-music", onSilence);
     };
   }, []);
@@ -404,32 +399,20 @@ export default function Navbar({ copy, lang, onToggleLang }) {
         </aside>
       )}
 
-      {/* Background YouTube audio player: in-viewport with standard dimensions so browsers do not throttle or power-save it */}
-      <div
-        className="audio-player-host"
+      {/* Background audio player */}
+      <audio
+        ref={audioRef}
+        loop
+        playsInline
+        preload="auto"
         aria-hidden="true"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          right: 0,
-          width: "200px",
-          height: "200px",
-          opacity: 0.001,
-          pointerEvents: "none",
-          overflow: "hidden",
-          zIndex: -1,
-        }}
+        style={{ display: "none" }}
       >
-        <iframe
-          ref={iframeRef}
-          width="200"
-          height="200"
-          src="https://www.youtube.com/embed/Rgfv9rwU_vM?enablejsapi=1&autoplay=1&start=8&loop=1&playlist=Rgfv9rwU_vM&playsinline=1&controls=0"
-          title="Wedding Background Music"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          onLoad={handleIframeLoad}
-        />
-      </div>
+        <source src="/audio/kanjanam-peyyunna.mp3" type="audio/mpeg" />
+        <source src="/audio/kanjanam-peyyunna.flac" type="audio/flac" />
+        <source src={DRIVE_AUDIO_URL} type="audio/flac" />
+        <source src={DRIVE_AUDIO_FALLBACK} type="audio/flac" />
+      </audio>
 
       <div
         id="mobile-menu"
