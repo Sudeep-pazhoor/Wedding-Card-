@@ -30,7 +30,7 @@ export default function TopLocation({ copy }) {
   const t = copy.topLocation || {
     badge: "For Wedding venue · Click Here",
     kicker: "Join us at",
-    title: "Hilton Convention Center",
+    title: "Hillton Convention Centre",
     address: "Vettekode Road, Vayapparappadi, Manjeri, Malappuram District, Kerala",
     dateTime: "Sunday, 24 January 2027 · Muhurtham 10:00 – 10:45 am",
     clickPrompt: "Click here to open in Google Maps",

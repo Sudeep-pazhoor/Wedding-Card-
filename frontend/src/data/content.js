@@ -54,7 +54,7 @@ export const content = {
       with: "with",
       bride: "Neeraja",
       date: "Sunday · 24 January 2027",
-      place: "Hillton Convention Centree · Manjeri",
+      place: "Hillton Convention Centre · Manjeri",
       primaryCta: "View blessings",
       secondaryCta: "View invitation",
       scroll: "Scroll to unfold",
@@ -103,7 +103,7 @@ export const content = {
       venueSmall: "The venue",
       dateLabel: "Sunday, 24 January 2027",
       muhurthamLabel: "Muhurtham · 10:00 – 10:45 am",
-      venueLabel: "Hillton Convention Centree, Manjeri",
+      venueLabel: "Hillton Convention Centre, Manjeri",
       malayalamDate: "1202 Makaram 10",
     },
     celebration: {
