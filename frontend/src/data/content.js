@@ -88,7 +88,7 @@ export const content = {
       with: "with",
       brideName: "Neeraja",
       afterNames:
-        "Daughter of Sri. K. N. Sunilkumar & Smt. Sindhu P. R., Kakkattu Mana, Guruvayoor",
+        "Daughter of Sri. K. N. Sunilkumar & Smt. Sindhu P. R., Kakkattu Mana, Guruvayur",
       closing:
         "We look forward to your gracious presence on this joyous and auspicious occasion to bless the newlyweds and share in our happiness.",
       signature: "With love and prayers",
@@ -330,7 +330,7 @@ export const content = {
       //signatureName: "പാഴൂർ & കക്കാട്ട് കുടുംബങ്ങൾ",
       portraitLabel: "ദമ്പതികളുടെ ചിത്രം",
       portraitNote: "ചിത്രം ഉടൻ ചേർക്കുന്നതാണ്",
-      portraitCaption: "സുന്ദീപ് & നീരജ",
+      portraitCaption: "സന്ദീപ് & നീരജ",
       //quote: "രണ്ട് കുടുംബങ്ങൾ, ഒരു ആഘോഷം, ഒരു ജീവിതകാലത്തെ ഒരുമ.",
       detailsLabel: "ക്ഷണക്കത്ത്",
       dateSmall: "വിവാഹം",
